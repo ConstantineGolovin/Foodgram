@@ -5,7 +5,7 @@ from users.models import User
 
 class Ingredient(models.Model):
     """Модель ингредиента"""
-    
+
     name = models.CharField(
         'Ингредиент',
         max_length=150
@@ -24,6 +24,26 @@ class Ingredient(models.Model):
                 name='unique_ingredient'
             )
         ]
+
+    def __str__(self):
+        return self.name
+
+
+class Tag(models.Model):
+    """Модель Тэга"""
+
+    name = models.CharField(
+        'Тэг',
+        max_length=50
+    )
+    slug = models.SlugField(
+        'Слаг',
+        max_length=50
+    )
+
+    class Meta:
+        verbose_name = 'Тэг'
+        verbose_name_plural = 'Тэги'
 
     def __str__(self):
         return self.name
