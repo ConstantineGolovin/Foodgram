@@ -27,6 +27,23 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous or user is None:
+            return False
+        return Follow.objects.filter(
+            author=obj.id,
+            user=user
+        ).exists()
+
+
 class FollowSerializers(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipe = serializers.SerializerMethodField()
@@ -99,7 +116,7 @@ class RecipesSerializers(serializers.ModelSerializer):
         ).exists()
 
 
-class IngredientInRecipeSerializer(serializers.ModelSerializer):
+class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
