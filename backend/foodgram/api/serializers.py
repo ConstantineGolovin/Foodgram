@@ -20,21 +20,27 @@ class TagSerializers(serializers.ModelSerializer):
 
 class FollowSerializers(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
+    recipe = serializers.SerializerMethodField()
+    recipe_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = '__all__'
         read_only_fields = ('id', 'first_name', 'last_name',
-                            'username', 'email', 'is_subscribed')
+                            'username', 'email', 'is_subscribed',
+                            'recipe', 'recipe_count')
 
-    def get_is_subscribed(self, follow):
+    def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
             return Follow.objects.filter(
-                user=follow,
+                user=obj,
                 author=user
             ).exists()
         return False
+
+    def get_recipe_count(obj):
+        return obj.recipes.count()
 
 
 class RecipesSerializers(serializers.ModelSerializer):
