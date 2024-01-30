@@ -1,7 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
-from recipes.models import Ingredient, Tag
-from api.serializers import IngredientSerializers, TagSerializers
+from recipes.models import Ingredient, Tag, Recipe
+from api.serializers import IngredientSerializers, TagSerializers, RecipesSerializers
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
@@ -12,3 +13,21 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializers
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipesSerializers
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def delete_object(self, pk, user, model):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(
+            {'errors': 'Рецепт уже был удалён!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
