@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from users.models import User
 
@@ -100,7 +101,8 @@ class Recipe(models.Model):
         max_length=1000
     )
     time = models.PositiveIntegerField(
-        'Время'
+        'Время',
+        validators=[MinValueValidator(1, 'Время не может быть меньше 1 мин')]
     )
     image = models.ImageField(
         'Фото',
@@ -151,3 +153,37 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f'{self.user}{self.recipe}'
+
+
+class CountIngredientInRecipe(models.Model):
+    """Количество ингредиентов в рецепте"""
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='countingredientinrecipe',
+        verbose_name='Рецепт'
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='countingredientinrecipe',
+        verbose_name='Ингредиент'
+    )
+    amount = models.PositiveIntegerField(
+        'Количество',
+        validators=[MinValueValidator(1, 'Количество не может быть меньше 1')]
+    )
+
+    class Meta:
+        verbose_name = 'Количество ингредиента'
+        verbose_name_plural = 'Количество ингредиентов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.recipe}{self.ingredient}'
