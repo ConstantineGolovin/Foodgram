@@ -2,7 +2,8 @@ from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import (Ingredient, Tag,
-                            Follow, Recipe, CountIngredientInRecipe)
+                            Follow, Recipe, CountIngredientInRecipe,
+                            Favorite, ShoppingCart)
 from users.models import User
 
 
@@ -32,28 +33,18 @@ class FollowSerializers(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if user.is_authenticated:
-            return Follow.objects.filter(
-                user=obj,
-                author=user
-            ).exists()
-        return False
+        if user.is_authenticated or user is None:
+            return False
+        return Follow.objects.filter(
+            user=obj,
+            author=user
+        ).exists()
 
     def get_recipe_count(obj):
         return obj.recipes.count()
 
 
-class RecipesSerializers(serializers.ModelSerializer):
-    image = Base64ImageField()
-    tags = TagSerializers(blank=True)
-
-    class Meta:
-        model = Recipe
-        fields = '__all__'
-        read_only_fields = ('tags', 'author')
-
-
-class CountIngredientInRecipe(serializers.ModelSerializer):
+class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -63,3 +54,38 @@ class CountIngredientInRecipe(serializers.ModelSerializer):
     class Meta:
         model = CountIngredientInRecipe
         fields = '__all__'
+
+
+class RecipesSerializers(serializers.ModelSerializer):
+    image = Base64ImageField()
+    tags = TagSerializers(blank=True)
+    ingredients = CountIngredientInRecipeSerializer(
+        many=True,
+        source='countingredients'
+    )
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'
+        read_only_fields = ('tags', 'author',
+                            'is_favorited', 'is_is_shopping_cart')
+
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous or user is None:
+            return False
+        return Favorite.objects.filter(
+            user=user,
+            recipe=obj
+        ).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous or user is None:
+            return False
+        return ShoppingCart.objects.filter(
+            user=user,
+            recipe=obj
+        ).exists()
