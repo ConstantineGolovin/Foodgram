@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 
-from recipes.models import Ingredient, Tag, Follow, Recipe
+from recipes.models import Ingredient, Tag, Follow, Recipe, CountIngredientInRecipe
 from users.models import User
 
 
@@ -44,3 +44,15 @@ class RecipesSerializers(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
         read_only_fields = ('tags', 'author')
+
+
+class CountIngredientInRecipe(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
+
+    class Meta:
+        model = CountIngredientInRecipe
+        fields = '__all__'
