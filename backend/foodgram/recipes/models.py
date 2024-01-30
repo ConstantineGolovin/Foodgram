@@ -55,12 +55,14 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='follower',
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follow'
+        related_name='follow',
+        verbose_name='Автор'
     )
 
     class Meta:
@@ -74,3 +76,48 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'{self.author}{self.user}'
+
+
+class Recipe(models.Model):
+    """Модель рецепта"""
+
+    name = models.CharField(
+        'Название',
+        max_length=150
+    )
+    tags = models.ForeignKey(
+        Tag,
+        related_name='recipes',
+        verbose_name='Тэг'
+    )
+    ingredients = models.ForeignKey(
+        Ingredient,
+        related_name='recipes',
+        verbose_name='Ингредиент'
+    )
+    text = models.TextField(
+        'Описание',
+        max_length=1000
+    )
+    time = models.PositiveIntegerField(
+        'Время'
+    )
+    image = models.ImageField(
+        'Фото',
+        upload_to='recipes/',
+        blank=True
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор'
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+        ordering = ('-created',)
+
+    def __str__(self):
+        return self.name
