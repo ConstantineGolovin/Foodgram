@@ -44,6 +44,19 @@ class UserSerializer(serializers.ModelSerializer):
         ).exists()
 
 
+class CreateUserSerializers(UserSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+        extra_kwargs = {'password': {'write_only': True}}
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=User.objects.all(),
+                fields=('email', 'username')
+            )
+        ]
+
+
 class FollowSerializers(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipe = serializers.SerializerMethodField()
