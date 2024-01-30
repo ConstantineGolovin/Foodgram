@@ -19,6 +19,14 @@ class TagSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FavoriteSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'
+
+
 class FollowSerializers(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipe = serializers.SerializerMethodField()
