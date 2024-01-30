@@ -2,7 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from recipes.models import Ingredient, Tag, Recipe
-from api.serializers import IngredientSerializers, TagSerializers, RecipesSerializers
+from api.serializers import (IngredientSerializers,
+                             TagSerializers,
+                             RecipesSerializers)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSets):

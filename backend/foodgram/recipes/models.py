@@ -71,7 +71,8 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author']
+                fields=['user', 'author'],
+                name='unique_user_author'
             )
         ]
 
@@ -88,11 +89,13 @@ class Recipe(models.Model):
     )
     tags = models.ForeignKey(
         Tag,
+        on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Тэг'
     )
     ingredients = models.ForeignKey(
         Ingredient,
+        on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Ингредиент'
     )
@@ -114,6 +117,11 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор'
+    )
+    created = models.DateTimeField(
+        'Дата',
+        auto_now_add=True,
+        db_index=True
     )
 
     class Meta:
