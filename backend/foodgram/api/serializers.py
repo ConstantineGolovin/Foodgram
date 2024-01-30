@@ -89,3 +89,20 @@ class RecipesSerializers(serializers.ModelSerializer):
             user=user,
             recipe=obj
         ).exists()
+
+
+class IngredientInRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = CountIngredientInRecipe
+        fields = '__all__'
+
+    @staticmethod
+    def validate_amount(count):
+        if count > 1:
+            return count
+        raise serializers.ValidationError(
+            'Количество не может быть меньше чем 1'
+        )
