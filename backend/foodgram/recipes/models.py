@@ -47,3 +47,30 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Follow(models.Model):
+    """Модель подписок"""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follow'
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author']
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.author}{self.user}'
