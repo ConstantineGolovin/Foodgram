@@ -187,3 +187,33 @@ class CountIngredientInRecipe(models.Model):
 
     def __str__(self):
         return f'{self.recipe}{self.ingredient}'
+
+
+class ShoppingCart(models.Model):
+    """Модель с корзины с покупками"""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shoppingcart',
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='shoppingcart',
+        verbose_name='Рецепт'
+    )
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user}{self.recipe}'
