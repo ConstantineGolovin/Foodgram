@@ -195,3 +195,14 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
             instance,
             context={'request': self.context.get('request')}
         ).data
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        instance.tags.clear()
+        instance.ingredients.clear()
+        instance.tags.set(tags)
+        self.choice_ingredient(ingredients=ingredients, recipe=instance)
+        instance.save()
+        return instance
