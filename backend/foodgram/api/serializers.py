@@ -175,5 +175,19 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         self.choice_ingredient(ingredients, recipe)
         return recipe
 
-
+    def validate_ingredient(self, data):
+        ingredients = data.get('ingredients')
+        list_ingredients = []
+        for ingredient in ingredients:
+            if ingredient['id'] in list_ingredients:
+                raise serializers.ValidationError(
+                    'Ингредиент не может повторяться!'
+                )
+            if int(ingredient['amount']) <= 0:
+                raise serializers.ValidationError(
+                    'Количество ингредиента должно быть больше 0'
+                )
+            list_ingredients.append(ingredient['id'])
+        return data
+            
 
