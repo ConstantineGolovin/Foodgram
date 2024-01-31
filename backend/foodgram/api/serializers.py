@@ -29,7 +29,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
-    
+
     class Meta:
         model = User
         fields = '__all__'
@@ -94,7 +94,7 @@ class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RecipesSerializers(serializers.ModelSerializer):
+class RecipesSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = TagSerializers(blank=True)
     ingredients = CountIngredientInRecipeSerializer(
@@ -144,3 +144,39 @@ class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(
             'Количество не может быть меньше чем 1'
         )
+
+
+class CreateNewRecipeSerializer(serializers.ModelSerializer):
+    tags = TagSerializers(many=True)
+    ingredients = CountIngredientInRecipeSerializer(many=True)
+    image = Base64ImageField()
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'
+
+    def choice_tags(self, recipe, tags):
+        recipe.tags.set(tags)
+
+    def choice_ingredient(self, recipe, ingredients):
+        for ingredient in ingredients:
+            ingredients = Ingredient.objects.get(pk=id)
+            amount = ingredient['amount']
+            CountIngredientInRecipe.objects.create(
+                recipe=recipe,
+                ingredient=ingredient,
+                amount=amount
+            )
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=user, **validated_data)
+        self.choice_tags(tags, recipe)
+        self.choice_ingredient(ingredients, recipe)
+        return recipe
+
+
+
