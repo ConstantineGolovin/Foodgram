@@ -156,9 +156,6 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
-    def choice_tags(self, recipe, tags):
-        recipe.tags.set(tags)
-
     def choice_ingredient(self, recipe, ingredients):
         for ingredient in ingredients:
             ingredients = Ingredient.objects.get(pk=id)
@@ -171,10 +168,10 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        tags = validated_data.pop('tags')
+        tag = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=user, **validated_data)
-        self.choice_tags(tags, recipe)
+        recipe.tags.set(tag)
         self.choice_ingredient(ingredients, recipe)
         return recipe
 
