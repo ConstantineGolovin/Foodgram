@@ -189,5 +189,9 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
                 )
             list_ingredients.append(ingredient['id'])
         return data
-            
 
+    def to_representation(self, instance):
+        return RecipesSerializer(
+            instance,
+            context={'request': self.context.get('request')}
+        ).data
