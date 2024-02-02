@@ -33,7 +33,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipesSerializer
     pagination_class = PagePagination
     permission_classes = [AuthorOrReadOnly]
 
