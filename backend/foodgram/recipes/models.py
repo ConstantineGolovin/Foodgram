@@ -50,7 +50,8 @@ class Tag(models.Model):
                 regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
                 message='Нужно написать цвет в формате НЕХ!'
             )
-        ]
+        ],
+        default='#ff0000'
     )
 
     class Meta:
@@ -98,13 +99,13 @@ class Recipe(models.Model):
         'Название',
         max_length=150
     )
-    tags = models.ForeignKey(
+    tags = models.ManyToManyField(
         Tag,
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Тэг'
     )
-    ingredients = models.ForeignKey(
+    ingredients = models.ManyToManyField(
         Ingredient,
         on_delete=models.CASCADE,
         related_name='recipes',
