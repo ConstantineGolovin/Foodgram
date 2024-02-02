@@ -32,6 +32,11 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     """Модель Тэга"""
+    COLORS = [
+        ('37ff00', 'Зелёный'),
+        ('fffb00', 'Жёлтый'),
+        ('ff0000', 'Красный'),
+    ]
 
     name = models.CharField(
         'Тэг',
@@ -40,6 +45,12 @@ class Tag(models.Model):
     slug = models.SlugField(
         'Слаг',
         max_length=50
+    )
+    color = models.CharField(
+        'Цвет',
+        choices=COLORS,
+        unique=True
+
     )
 
     class Meta:

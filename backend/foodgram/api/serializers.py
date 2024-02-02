@@ -99,10 +99,9 @@ class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
 
 class RecipesSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    tags = TagSerializers()
+    tag = TagSerializers(many=True)
     ingredients = CountIngredientInRecipeSerializer(
-        many=True,
-        source='countingredients'
+        many=True
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -110,7 +109,7 @@ class RecipesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
-        read_only_fields = ('tags', 'author',
+        read_only_fields = ('tag', 'author',
                             'is_favorited', 'is_is_shopping_cart')
 
     def get_is_favorited(self, obj):
