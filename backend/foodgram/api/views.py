@@ -45,7 +45,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         serializer = FavoriteSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)       
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_recipe(self, pk, user, model):
         obj = model.objects.filter(user=user, recipe__id=pk)
@@ -71,7 +71,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
             methods=['POST', 'DELETE'],
             detail=True,
-            permission_classes=[IsAuthenticated]     
+            permission_classes=[IsAuthenticated]
     )
     def use_shopping_cart(self, request, pk):
         if request.method == 'POST':
