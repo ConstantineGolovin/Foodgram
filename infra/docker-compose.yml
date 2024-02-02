@@ -24,7 +24,7 @@ services:
       - ../frontend/:/app/result_build/
 
   gateway:
-    build: .infra/nginx/
+    build: ./infra/nginx
     ports:
       - 8000:80
     volumes:
