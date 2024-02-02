@@ -10,7 +10,8 @@ from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
                              UserSerializer,
-                             FollowSerializers)
+                             FollowSerializers,
+                             CreateNewRecipeSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
@@ -39,6 +40,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {'errors': 'Рецепт уже был удалён!'},
             status=status.HTTP_400_BAD_REQUEST
         )
+    
+    def get_serializer_class(self):
+        if self.action in ('retrieve', 'list'):
+            return RecipesSerializer
+        return CreateNewRecipeSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -57,7 +63,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = FollowSerializers(
                 author,
                 data=request.data,
-                context={"request": request}
+                context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
             sub = Follow.objects.cerate(user=user, author=author)
