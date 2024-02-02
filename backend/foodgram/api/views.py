@@ -17,6 +17,7 @@ from api.serializers import (IngredientSerializers,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
                              FavoriteSerializer)
+from api.pagination import PagePagination
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -32,6 +33,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipesSerializer
+    pagination_class = PagePagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
