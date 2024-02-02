@@ -4,14 +4,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
-from recipes.models import Ingredient, Tag, Recipe, Follow
+from recipes.models import Ingredient, Tag, Recipe, Follow, Favorite
 from users.models import User
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
                              UserSerializer,
                              FollowSerializers,
-                             CreateNewRecipeSerializer)
+                             CreateNewRecipeSerializer,
+                             FavoriteSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
@@ -31,7 +32,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def delete_object(self, pk, user, model):
+    def add_recipe(self, user, model, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        if model.objects.filter(user=user, recipe=recipe):
+            return Response(
+                {'errors': 'Этот рецепт уже был добавлен'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = FavoriteSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)       
+
+    def delete_recipe(self, pk, user, model):
         obj = model.objects.filter(user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
@@ -40,7 +52,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {'errors': 'Рецепт уже был удалён!'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
+    @action(
+            methods=['POST', 'DELETE'],
+            detail=True,
+            permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, pk):
+        if request.method == 'POST':
+            return self.add_recipe(Favorite, request.user, pk)
+        if request.method == 'DELETE':
+            return self.delete_recipe(Favorite, request.user, pk)
+
     def get_serializer_class(self):
         if self.action in ('retrieve', 'list'):
             return RecipesSerializer
