@@ -2,9 +2,11 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from recipes.models import Ingredient, Tag, Recipe
+from users.models import User
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
-                             RecipesSerializer)
+                             RecipesSerializer,
+                             UserSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
@@ -33,3 +35,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {'errors': 'Рецепт уже был удалён!'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
