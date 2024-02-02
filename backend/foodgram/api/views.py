@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
-from recipes.models import Ingredient, Tag, Recipe, Follow, Favorite
+from recipes.models import (Ingredient, Tag, Recipe,
+                            Follow, Favorite, ShoppingCart)
 from users.models import User
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
@@ -63,6 +64,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.add_recipe(Favorite, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(Favorite, request.user, pk)
+
+    @action(
+            methods=['POST', 'DELETE'],
+            detail=True,
+            permission_classes=[IsAuthenticated]     
+    )
+    def use_shopping_cart(self, request, pk):
+        if request.method == 'POST':
+            return self.add_recipe(ShoppingCart, request.user, pk)
+        if request.method == 'DELETE':
+            return self.delete_recipe(ShoppingCart, request.user, pk)
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'list'):
