@@ -11,7 +11,7 @@ services:
   backend:
     build: ../backend/foodgram
     volumes:
-      - static:/static/django/
+      - static:app/static_django/
       - media:/app/media/
     depends_on:
       - db
