@@ -101,13 +101,11 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Тэг'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Ингредиент'
     )
