@@ -11,7 +11,7 @@ services:
   backend:
     build: ../backend/foodgram
     volumes:
-      - static:/app/static/
+      - static:/app/static_django/
       - media:/app/media/
     depends_on:
       - db
@@ -30,8 +30,8 @@ services:
     volumes:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static:/var/html/static
-      - media:/var/html/media
+      - static:/static_django
+      - media:/media
     depends_on:
       - backend
       - frontend
