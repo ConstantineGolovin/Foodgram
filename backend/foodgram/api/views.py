@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 
 from recipes.models import Ingredient, Tag, Recipe, Follow
 from users.models import User
@@ -59,7 +60,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
-            Follow.objects.cerate(user=user, author=author)
+            sub = Follow.objects.cerate(user=user, author=author)
+            sub.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             sub = get_object_or_404(
@@ -69,3 +71,18 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             sub.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def is_subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(follow__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializers(
+            pages,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
