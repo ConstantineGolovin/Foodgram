@@ -152,3 +152,15 @@ class UserViewSet(viewsets.ModelViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+    )
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )

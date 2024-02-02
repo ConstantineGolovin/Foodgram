@@ -56,6 +56,9 @@ class CreateUserSerializers(UserSerializer):
             )
         ]
 
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
 
 class FollowSerializers(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
