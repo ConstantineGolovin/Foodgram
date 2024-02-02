@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 
 from users.models import User
 
@@ -32,11 +32,6 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     """Модель Тэга"""
-    COLORS = [
-        ('37ff00', 'Зелёный'),
-        ('fffb00', 'Жёлтый'),
-        ('ff0000', 'Красный'),
-    ]
 
     name = models.CharField(
         'Тэг',
@@ -47,11 +42,15 @@ class Tag(models.Model):
         max_length=50
     )
     color = models.CharField(
-        'Цвет',
-        max_length=10,
-        choices=COLORS,
-        unique=True
-
+        'HEX-код',
+        unique=True,
+        max_length=7,
+        validators=[
+            RegexValidator(
+                regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+                message='Нужно написать цвет в формате НЕХ!'
+            )
+        ]
     )
 
     class Meta:
