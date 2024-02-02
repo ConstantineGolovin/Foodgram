@@ -48,6 +48,7 @@ class Tag(models.Model):
     )
     color = models.CharField(
         'Цвет',
+        max_length=10,
         choices=COLORS,
         unique=True
 
