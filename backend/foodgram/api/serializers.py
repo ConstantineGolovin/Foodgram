@@ -24,7 +24,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = ('id', 'name', 'image', 'time')
+        read_only_fields = ('id', 'name', 'image', 'time')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -67,7 +68,8 @@ class FollowSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count')
         read_only_fields = ('id', 'first_name', 'last_name',
                             'username', 'email', 'is_subscribed',
                             'recipe', 'recipe_count')
@@ -94,7 +96,7 @@ class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CountIngredientInRecipe
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class RecipesSerializer(serializers.ModelSerializer):
@@ -108,7 +110,9 @@ class RecipesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'time')
         read_only_fields = ('tags', 'author',
                             'is_favorited', 'is_is_shopping_cart')
 
@@ -137,7 +141,7 @@ class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CountIngredientInRecipe
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
     @staticmethod
     def validate_amount(count):
