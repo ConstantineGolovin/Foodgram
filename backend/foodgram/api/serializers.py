@@ -96,7 +96,7 @@ class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
 
 class RecipesSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    tags = TagSerializers(blank=True)
+    tags = TagSerializers()
     ingredients = CountIngredientInRecipeSerializer(
         many=True,
         source='countingredients'

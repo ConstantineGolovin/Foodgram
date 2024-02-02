@@ -19,7 +19,7 @@ from api.serializers import (IngredientSerializers,
                              FavoriteSerializer)
 
 
-class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializers
 
@@ -78,7 +78,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.add_recipe(ShoppingCart, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(ShoppingCart, request.user, pk)
-    
+
     def download_shopping_cart(self, request):
         ingredients = CountIngredientInRecipe.objects.filter(
             recipe__shopping_cart__user=request.user
