@@ -17,8 +17,8 @@ class RecipeFilter(FilterSet):
         to_field_name='slug',
         queryset=Tag.objects.all()
     )
-    favorite = filters.BooleanFilter()
-    shopping_cart = filters.BooleanFilter()
+    favorite = filters.BooleanFilter(method='filter_favorite')
+    shopping_cart = filters.BooleanFilter(method='filter_shopping_cart')
 
     class Meta:
         model = Recipe
