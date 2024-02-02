@@ -1,11 +1,14 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Sum
+from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
 from recipes.models import (Ingredient, Tag, Recipe,
-                            Follow, Favorite, ShoppingCart)
+                            Follow, Favorite, ShoppingCart,
+                            CountIngredientInRecipe)
 from users.models import User
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
@@ -75,6 +78,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.add_recipe(ShoppingCart, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(ShoppingCart, request.user, pk)
+    
+    def download_shopping_cart(self, request):
+        ingredients = CountIngredientInRecipe.objects.filter(
+            recipe__shopping_cart__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+        shopping_cart = ''
+        shopping_cart += ''.join([
+            f'{ingredient["ingredient__name"]}'
+            f'{ingredient["ingredient__measurement_unit"]}'
+            f'{ingredient["amount"]}'
+            for ingredient in ingredients
+        ])
+        response = HttpResponse(shopping_cart, content_type='text/plan')
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_cart.txt')
+        return response
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'list'):
