@@ -18,6 +18,7 @@ from api.serializers import (IngredientSerializers,
                              CreateNewRecipeSerializer,
                              FavoriteSerializer)
 from api.pagination import PagePagination
+from api.permissions import AuthorOrReadOnly
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -34,6 +35,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipesSerializer
     pagination_class = PagePagination
+    permission_classes = [AuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
