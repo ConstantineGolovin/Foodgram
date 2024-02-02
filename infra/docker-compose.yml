@@ -9,9 +9,9 @@ services:
       - ./.env
 
   backend:
-    build: ./backend/infra
+    build: ../backend/foodgram
     volumes:
-      - static:/app/static/
+      - static:/static/django/
       - media:/app/media/
     depends_on:
       - db
@@ -19,18 +19,18 @@ services:
       - ./.env
 
   frontend:
-    build: ./frontend
+    build: ../frontend
     volumes:
       - ../frontend/:/app/result_build/
 
   gateway:
-    build: ./infra/nginx
+    build: ./nginx
     ports:
       - 8000:80
     volumes:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static:/var/html/static
+      - static:/var/html/static_django
       - media:/var/html/media
     depends_on:
       - backend
