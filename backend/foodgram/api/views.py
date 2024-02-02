@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from recipes.models import Ingredient, Tag, Recipe
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
-                             RecipesSerializers)
+                             RecipesSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSets):
@@ -19,7 +19,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipesSerializers
+    serializer_class = RecipesSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
