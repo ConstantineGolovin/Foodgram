@@ -1,7 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from django.http import HttpResponse
 from djoser.serializers import SetPasswordSerializer
+from djoser.views import UserViewSet
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -10,16 +12,17 @@ from rest_framework.decorators import action
 from recipes.models import (Ingredient, Tag, Recipe,
                             Follow, Favorite, ShoppingCart,
                             CountIngredientInRecipe)
-from users.models import User
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
-                             UserSerializer,
+                             IsUserSerializer,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
                              FavoriteSerializer, CreateUserSerializers)
 from api.pagination import PagePagination
 from api.permissions import AuthorOrReadOnly
+
+User = get_user_model()
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,14 +43,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'request': self.request})
+        return context
+
     def add_recipe(self, user, model, pk):
-        recipe = get_object_or_404(Recipe, id=pk)
-        model.objects.create(user=user, recipe=recipe)
-        if model.objects.filter(user=user, recipe=recipe):
+        if model.objects.filter(user=user, recipe_id=pk).exists():
             return Response(
-                {'errors': 'Этот рецепт уже был добавлен'},
+                {'errors': 'Рецепт уже добавлен'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
         serializer = FavoriteSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -108,12 +116,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return CreateNewRecipeSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(UserViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = IsUserSerializer
     serializers = {
         'create': CreateUserSerializers,
-        'me': UserSerializer,
+        'me': IsUserSerializer,
         'set_password': SetPasswordSerializer,
     }
 
