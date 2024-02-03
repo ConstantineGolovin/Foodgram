@@ -11,6 +11,7 @@ class IngredientSerializers(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = '__all__'
+        read_only_fields = ('name', 'color', 'slug')
 
 
 class TagSerializers(serializers.ModelSerializer):

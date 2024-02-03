@@ -12,7 +12,7 @@ class IngredientFilter(FilterSet):
 
 
 class RecipeFilter(FilterSet):
-    tag = filters.ModelChoiceFilter(
+    tags = filters.ModelChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all()

@@ -1,7 +1,18 @@
 from django.db import models
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator
 
 from users.models import User
+
+
+RED = 'ff0000'
+GREEN = '37ff00'
+YELLOW = 'fffb00'
+
+COLORS = [
+    (GREEN, 'Зеленый'),
+    (YELLOW, 'Желтый'),
+    (RED, 'Красный'),
+]
 
 
 class Ingredient(models.Model):
@@ -37,21 +48,15 @@ class Tag(models.Model):
         'Тэг',
         max_length=50
     )
+    color = models.CharField(
+        'HEX формат цвета',
+        unique=True,
+        choices=COLORS,
+        max_length=7
+    )
     slug = models.SlugField(
         'Слаг',
         max_length=50
-    )
-    color = models.CharField(
-        'HEX-код',
-        unique=True,
-        max_length=7,
-        validators=[
-            RegexValidator(
-                regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
-                message='Нужно написать цвет в формате НЕХ!'
-            )
-        ],
-        default='#ff0000'
     )
 
     class Meta:
