@@ -1,10 +1,13 @@
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
+from django.contrib.auth import get_user_model
 
 from recipes.models import (Ingredient, Tag,
                             Follow, Recipe, CountIngredientInRecipe,
                             Favorite, ShoppingCart)
-from users.models import User
+
+
+User = get_user_model()
 
 
 class IngredientSerializers(serializers.ModelSerializer):
@@ -33,7 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('id', 'first_name', 'last_name',
+                  'username', 'email', 'password', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
@@ -45,15 +49,23 @@ class UserSerializer(serializers.ModelSerializer):
         ).exists()
 
 
-class CreateUserSerializers(UserSerializer):
+class CreateUserSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('id', 'first_name', 'last_name',
+                  'username', 'email', 'password',)
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'username': {'required': True},
+            'email': {'required': True},
+            'password': {'required': True},
+        }
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=User.objects.all(),
-                fields=('email', 'username')
+                fields=('email', 'username'),
+                message="Логин и email должны быть уникальными"
             )
         ]
 
@@ -103,7 +115,8 @@ class RecipesSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = TagSerializers(many=True)
     ingredients = CountIngredientInRecipeSerializer(
-        many=True
+        many=True,
+        source='countingredientinrecipe'
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()

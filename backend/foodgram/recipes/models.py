@@ -1,7 +1,9 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 
-from users.models import User
+
+User = get_user_model()
 
 
 RED = 'ff0000'

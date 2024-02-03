@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from django.http import HttpResponse
+from djoser.serializers import SetPasswordSerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +17,7 @@ from api.serializers import (IngredientSerializers,
                              UserSerializer,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
-                             FavoriteSerializer)
+                             FavoriteSerializer, CreateUserSerializers)
 from api.pagination import PagePagination
 from api.permissions import AuthorOrReadOnly
 
@@ -63,7 +64,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
             methods=['POST', 'DELETE'],
             detail=True,
-            permission_classes=[IsAuthenticated]
+            permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
@@ -74,7 +75,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
             methods=['POST', 'DELETE'],
             detail=True,
-            permission_classes=[IsAuthenticated]
+            permission_classes=[IsAuthenticated],
     )
     def use_shopping_cart(self, request, pk):
         if request.method == 'POST':
@@ -110,11 +111,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    serializers = {
+        'create': CreateUserSerializers,
+        'me': UserSerializer,
+        'set_password': SetPasswordSerializer,
+    }
+
+    def get_serializer_class(self):
+        try:
+            return self.serializers[self.action]
+        except KeyError:
+            return self.serializer_class
 
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[IsAuthenticated],
     )
     def subscribes(self, request, id):
         user = request.user
@@ -140,7 +152,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        permission_classes=[IsAuthenticated]
+        permission_classes=[IsAuthenticated],
     )
     def is_subscriptions(self, request):
         user = request.user
@@ -164,3 +176,17 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+    )
+    def set_password(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.request.user.set_password(
+            serializer.validated_data.get('new_password')
+        )
+        self.request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
