@@ -1,18 +1,8 @@
+from colorfield.fields import ColoeField
 from django.db import models
 from django.core.validators import MinValueValidator
 
 from users.models import User
-
-
-RED = 'ff0000'
-GREEN = '37ff00'
-YELLOW = 'fffb00'
-
-COLORS = [
-    (GREEN, 'Зеленый'),
-    (YELLOW, 'Желтый'),
-    (RED, 'Красный'),
-]
 
 
 class Ingredient(models.Model):
@@ -23,7 +13,7 @@ class Ingredient(models.Model):
         max_length=150
     )
     measurement_unit = models.CharField(
-        'Вес',
+        'Единицы измерения',
         max_length=10
     )
 
@@ -48,15 +38,14 @@ class Tag(models.Model):
         'Тэг',
         max_length=50
     )
-    color = models.CharField(
-        'HEX формат цвета',
+    color = ColoeField(
+        verbose_name='HEX',
         unique=True,
-        choices=COLORS,
         max_length=7
     )
     slug = models.SlugField(
         'Слаг',
-        max_length=50
+        unique=True
     )
 
     class Meta:
@@ -112,7 +101,8 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
-        verbose_name='Ингредиент'
+        verbose_name='Ингредиент',
+        through='CountIngredientInRecipe'
     )
     text = models.TextField(
         'Описание',
