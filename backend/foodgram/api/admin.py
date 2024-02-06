@@ -1,28 +1,31 @@
-from django.contrib import admin
+from django.contrib.admin import ModelAdmin, register, site
 
 from recipes.models import (Tag, Ingredient, Favorite,
                             Recipe, CountIngredientInRecipe,
                             ShoppingCart)
 
+site.site_header = 'Администрирование Foodgram'
+EMPTY_VALUE_DISPLAY = 'Значение не указано'
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
+
+@register(Tag)
+class TagAdmin(ModelAdmin):
     list_display = ('name', 'slug', 'color')
 
 
-@admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
+@register(Ingredient)
+class IngredientAdmin(ModelAdmin):
     list_display = ('name', 'measurement_unit',)
     list_filter = ('name',)
 
 
-@admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
+@register(Favorite)
+class FavoriteAdmin(ModelAdmin):
     list_display = ('user', 'recipe',)
 
 
-@admin.register(Recipe)
-class RecipeAdmin(admin.ModelAdmin):
+@register(Recipe)
+class RecipeAdmin(ModelAdmin):
     list_display = ('name', 'id', 'author', 'favorite',)
     list_filter = ('author', 'name', 'tags',)
 
@@ -30,11 +33,11 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorites.count()
 
 
-@admin.register(CountIngredientInRecipe)
-class CountIngredientInRecipeAdmin(admin.ModelAdmin):
+@register(CountIngredientInRecipe)
+class CountIngredientInRecipeAdmin(ModelAdmin):
     list_display = ('recipe', 'ingredient', 'amount',)
 
 
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
+@register(ShoppingCart)
+class ShoppingCartAdmin(ModelAdmin):
     list_display = ('recipe', 'user',)
