@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAuthenticated
 
 
 class AuthorOrReadOnly(BasePermission):
@@ -13,3 +13,9 @@ class AuthorOrReadOnly(BasePermission):
             request.method in SAFE_METHODS
             or obj.author == request.user
         )
+
+
+class AllowAnyGetPost(IsAuthenticated):
+    def has_permission(self, request, view):
+        return (request.method in SAFE_METHODS
+                or request.method == 'POST')

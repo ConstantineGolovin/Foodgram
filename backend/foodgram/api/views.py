@@ -20,7 +20,7 @@ from api.serializers import (IngredientSerializers,
                              CreateNewRecipeSerializer,
                              FavoriteSerializer, CreateUserSerializers)
 from api.pagination import PagePagination
-from api.permissions import AuthorOrReadOnly
+from api.permissions import AuthorOrReadOnly, AllowAnyGetPost
 
 User = get_user_model()
 
@@ -42,11 +42,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({'request': self.request})
-        return context
 
     def add_recipe(self, user, model, pk):
         if model.objects.filter(user=user, recipe_id=pk).exists():
@@ -74,11 +69,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True,
             permission_classes=[IsAuthenticated],
     )
-    def favorite(self, request, pk):
+    def favorite(self, request, pk=None):
         if request.method == 'POST':
             return self.add_recipe(Favorite, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(Favorite, request.user, pk)
+        return None
 
     @action(
             methods=['POST', 'DELETE'],
@@ -90,6 +86,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.add_recipe(ShoppingCart, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(ShoppingCart, request.user, pk)
+        return None
 
     def download_shopping_cart(self, request):
         ingredients = CountIngredientInRecipe.objects.filter(
@@ -124,6 +121,8 @@ class UserViewSet(UserViewSet):
         'me': IsUserSerializer,
         'set_password': SetPasswordSerializer,
     }
+    permission_classes = [AllowAnyGetPost]
+    pagination_class = PagePagination
 
     def get_serializer_class(self):
         try:

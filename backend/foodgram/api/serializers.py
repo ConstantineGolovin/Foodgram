@@ -101,7 +101,7 @@ class FollowSerializers(IsUserSerializer):
 
 
 class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='ingredient.id')
+    id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
@@ -118,8 +118,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_amount(value):
-        """Метод валидации количества"""
-
         if value < 1:
             raise serializers.ValidationError(
                 'Количество ингредиента должно быть больше 0!'
@@ -146,7 +144,7 @@ class RecipesSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
                   'is_in_shopping_cart', 'name', 'image', 'text',
-                  'time')
+                  'cooking_time')
         read_only_fields = ('tags', 'author',
                             'is_favorited', 'is_is_shopping_cart')
 
@@ -170,7 +168,6 @@ class RecipesSerializer(serializers.ModelSerializer):
 
 
 class CreateNewRecipeSerializer(serializers.ModelSerializer):
-    tags = TagSerializers(many=True)
     ingredients = IngredientInRecipeSerializer(many=True)
     image = Base64ImageField()
     author = UserSerializer(read_only=True)
@@ -187,13 +184,17 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
                 amount=ingredient['amount']
             )
 
+    def choice_tags(self, tags, recipe):
+        for tag in tags:
+            recipe.tags.add(tag)
+
     def create(self, validated_data):
-        image_data = validated_data.pop('image')
+        image = validated_data.pop('image')
         tag = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(image=image_data, **validated_data)
-        recipe.tags.set(tag)
-        self.choice_ingredient(ingredients=ingredients, recipe=recipe)
+        recipe = Recipe.objects.create(image=image, **validated_data)
+        self.choice_tags(tag, recipe)
+        self.choice_ingredient(ingredients, recipe)
         return recipe
 
     def validate_ingredient(self, data):
@@ -225,10 +226,10 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         return value
 
     def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
         return RecipesSerializer(
-            instance,
-            context={'request': self.context.get('request')}
-        ).data
+            instance, context=context).data
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
@@ -236,7 +237,7 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         instance.tags.clear()
         instance.ingredients.clear()
-        instance.tags.set(tags)
+        self.choice_tags(tags, instance)
         self.choice_ingredient(ingredients=ingredients, recipe=instance)
         instance.save()
         return instance
