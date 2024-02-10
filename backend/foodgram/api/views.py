@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from django.http import HttpResponse
-from djoser.serializers import SetPasswordSerializer
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -15,10 +15,10 @@ from recipes.models import (Ingredient, Tag, Recipe,
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
-                             UserSerializer,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
-                             FavoriteSerializer, CreateUserSerializers)
+                             FavoriteSerializer)
+from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import PagePagination
 from api.permissions import AuthorOrReadOnly
 
@@ -28,6 +28,8 @@ User = get_user_model()
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializers
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -39,26 +41,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = PagePagination
     permission_classes = [AuthorOrReadOnly]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def add_recipe(self, user, model, pk):
-        if model.objects.filter(user=user, recipe_id=pk).exists():
+    def add_recipe(self, user, model, recipe_id):
+        if model.objects.filter(user=user, recipe_id=recipe_id).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        recipe = get_object_or_404(Recipe, id=pk)
+        recipe = get_object_or_404(Recipe, id=recipe_id)
         model.objects.create(user=user, recipe=recipe)
         serializer = FavoriteSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_recipe(self, pk, user, model):
-        obj = model.objects.filter(user=user, recipe__id=pk)
+    def delete_recipe(self, recipe_id, user, model):
+        obj = model.objects.filter(user=user, recipe__id=recipe_id)
         if obj.exists():
             obj.delete()
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
             {'errors': 'Рецепт уже был удалён!'},
             status=status.HTTP_400_BAD_REQUEST
@@ -69,12 +73,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True,
             permission_classes=[IsAuthenticated],
     )
-    def favorite(self, request, pk=None):
+    def favorite(self, request, pk):
         if request.method == 'POST':
             return self.add_recipe(Favorite, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(Favorite, request.user, pk)
-        return None
 
     @action(
             methods=['POST', 'DELETE'],
@@ -86,16 +89,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.add_recipe(ShoppingCart, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_recipe(ShoppingCart, request.user, pk)
-        return None
 
+    @action(
+            methods=('GET'),
+            detail=False,
+            permission_classes=[IsAuthenticated],
+    )
     def download_shopping_cart(self, request):
         ingredients = CountIngredientInRecipe.objects.filter(
             recipe__shopping_cart__user=request.user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
-        shopping_cart = ''
+        ).annotate(amount=Sum('amount')).order_by('ingredient__name')
+        shopping_cart = 'Список покупок'
         shopping_cart += ''.join([
             f'{ingredient["ingredient__name"]}'
             f'{ingredient["ingredient__measurement_unit"]}'
