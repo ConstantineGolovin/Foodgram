@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from django.http import HttpResponse
 from djoser.serializers import SetPasswordSerializer
-from djoser.views import UserViewSet
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -15,12 +15,12 @@ from recipes.models import (Ingredient, Tag, Recipe,
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
-                             IsUserSerializer,
+                             UserSerializer,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
                              FavoriteSerializer, CreateUserSerializers)
 from api.pagination import PagePagination
-from api.permissions import AuthorOrReadOnly, AllowAnyGetPost
+from api.permissions import AuthorOrReadOnly
 
 User = get_user_model()
 
@@ -113,29 +113,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return CreateNewRecipeSerializer
 
 
-class UserViewSet(UserViewSet):
+class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
-    serializer_class = IsUserSerializer
-    serializers = {
-        'create': CreateUserSerializers,
-        'me': IsUserSerializer,
-        'set_password': SetPasswordSerializer,
-    }
-    permission_classes = [AllowAnyGetPost]
     pagination_class = PagePagination
-
-    def get_serializer_class(self):
-        try:
-            return self.serializers[self.action]
-        except KeyError:
-            return self.serializer_class
 
     @action(
         detail=True,
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated],
     )
-    def subscribes(self, request, id):
+    def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
         if request.method == 'POST':
@@ -148,14 +135,14 @@ class UserViewSet(UserViewSet):
             sub = Follow.objects.cerate(user=user, author=author)
             sub.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            sub = get_object_or_404(
-                Follow,
-                user=user,
-                author=author
-            )
-            sub.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        sub = get_object_or_404(
+            Follow,
+            user=user,
+            author=author
+        )
+        sub.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -177,23 +164,12 @@ class UserViewSet(UserViewSet):
         detail=False,
         permission_classes=[IsAuthenticated],
     )
-    def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
+    def subscriptions(self, request):
+        queryset = User.objects.filter(follow__user=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializers(
+            pages,
+            many=True,
+            context={'request': request}
         )
-
-    @action(
-        methods=['POST'],
-        detail=False,
-        permission_classes=[IsAuthenticated],
-    )
-    def set_password(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.request.user.set_password(
-            serializer.validated_data.get('new_password')
-        )
-        self.request.user.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.get_paginated_response(serializer.data)
