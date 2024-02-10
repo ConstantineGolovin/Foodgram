@@ -9,9 +9,8 @@ from recipes.models import Ingredient
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print('Началась загрузка ингредиентов')
-        ingredients = json.loads(
-            (settings.BASE_DIR / 'data' / 'ingredients.json').read_text()
-        )
+        with open('data/ingredients.json', encoding='utf-8') as file:
+            ingredients = json.load(file)
         for ingredient in ingredients:
             if Ingredient.objects.filter(
                 name=ingredient['name'],

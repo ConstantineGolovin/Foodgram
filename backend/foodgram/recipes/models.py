@@ -1,4 +1,4 @@
-from colorfield.fields import ColoeField
+from colorfield.fields import ColorField
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -38,7 +38,7 @@ class Tag(models.Model):
         'Тэг',
         max_length=50
     )
-    color = ColoeField(
+    color = ColorField(
         verbose_name='HEX',
         unique=True,
         max_length=7
