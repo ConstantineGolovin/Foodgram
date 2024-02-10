@@ -1,7 +1,6 @@
-from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserSerializer, UserCreateSerializer
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
 
 from recipes.models import (Ingredient, Tag,
                             Follow, Recipe, CountIngredientInRecipe,
@@ -28,11 +27,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'image', 'time')
-        read_only_fields = ('id', 'name', 'image', 'time')
+        fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class IsUserSerializer(UserCreateSerializer):
+class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -50,14 +49,12 @@ class IsUserSerializer(UserCreateSerializer):
         ).exists()
 
 
-class CreateUserSerializers(IsUserSerializer):
+class CreateUserSerializers(UserSerializer):
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name',
                   'username', 'email', 'password',)
         extra_kwargs = {
-            'first_name': {'required': True},
-            'last_name': {'required': True},
             'username': {'required': True},
             'email': {'required': True},
             'password': {'required': True},
@@ -74,10 +71,9 @@ class CreateUserSerializers(IsUserSerializer):
         return User.objects.create_user(**validated_data)
 
 
-class FollowSerializers(IsUserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
+class FollowSerializers(UserSerializer):
     recipes = serializers.SerializerMethodField()
-    recipes_count = FavoriteSerializer(many=True)
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -87,17 +83,14 @@ class FollowSerializers(IsUserSerializer):
                             'username', 'email', 'is_subscribed',
                             'recipes', 'recipes_count')
 
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            return Follow.objects.filter(
-                author=user,
-                user=obj
-            ).exists()
-        return False
-
-    def get_recipe_count(obj):
+    def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        recipe_limit = int(self.context['request'].GET.get('recipes_limit', 0))
+        recipes = obj.recipes.all()
+        recipes = recipes[:recipe_limit] if recipe_limit else recipes
+        return ShortRecipeSerializer(recipes, many=True).data
 
 
 class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -241,3 +234,11 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         self.choice_ingredient(ingredients=ingredients, recipe=instance)
         instance.save()
         return instance
+
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cookong_time')
