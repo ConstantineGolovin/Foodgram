@@ -166,7 +166,7 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         source='countingredientinrecipe'
     )
     image = Base64ImageField()
-    tag = serializers.PrimaryKeyRelatedField(
+    tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
     )
@@ -189,7 +189,7 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
         tag = validated_data.pop('tags')
         ingredients = validated_data.pop('countingredientinrecipe')
         recipe = Recipe.objects.create(image=image_data, **validated_data)
-        recipe.tag.set(tag)
+        recipe.tags.set(tag)
         self.choice_ingredient(ingredients=ingredients,
                                recipe=recipe)
         return recipe
@@ -226,7 +226,7 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('countingredientsinrecipe')
+        ingredients = validated_data.pop('countingredientinrecipe')
         instance.tags.clear()
         instance.ingredients.clear()
         instance.tags.set(tags)
