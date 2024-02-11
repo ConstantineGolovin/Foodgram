@@ -55,6 +55,8 @@ class CreateUserSerializers(UserSerializer):
         fields = ('id', 'first_name', 'last_name',
                   'username', 'email', 'password',)
         extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
             'username': {'required': True},
             'email': {'required': True},
             'password': {'required': True},
@@ -138,8 +140,6 @@ class RecipesSerializer(serializers.ModelSerializer):
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
                   'is_in_shopping_cart', 'name', 'image', 'text',
                   'cooking_time')
-        read_only_fields = ('tags', 'author',
-                            'is_favorited', 'is_is_shopping_cart')
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user

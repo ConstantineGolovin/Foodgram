@@ -28,7 +28,7 @@ class User(AbstractUser):
         default=False
     )
 
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
     USERNAME_FIELD = 'email'
 
     class Meta:
