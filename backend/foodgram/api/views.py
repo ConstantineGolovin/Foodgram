@@ -47,7 +47,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def add_recipe(self, user, model, recipe_id):
+    def add_recipe(self, model, user, recipe_id):
         if model.objects.filter(user=user, recipe_id=recipe_id).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен'},
@@ -58,8 +58,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = FavoriteSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_recipe(self, recipe_id, user, model):
-        obj = model.objects.filter(user=user, recipe__id=recipe_id)
+    def delete_recipe(self, model, user, recipe_id):
+        obj = model.objects.filter(user=user, recipe_id=recipe_id)
         if obj.exists():
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -91,13 +91,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_recipe(ShoppingCart, request.user, pk)
 
     @action(
-            methods=('GET'),
+            methods=('get',),
             detail=False,
             permission_classes=[IsAuthenticated],
     )
     def download_shopping_cart(self, request):
         ingredients = CountIngredientInRecipe.objects.filter(
-            recipe__shopping_cart__user=request.user
+            recipe__shoppingcart__user=request.user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
@@ -139,7 +139,7 @@ class UserViewSet(DjoserUserViewSet):
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-            sub = Follow.objects.cerate(user=user, author=author)
+            sub = Follow.objects.create(user=user, author=author)
             sub.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
