@@ -69,9 +69,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @action(
-            methods=['POST', 'DELETE'],
-            detail=True,
-            permission_classes=[IsAuthenticated],
+        methods=['POST', 'DELETE'],
+        detail=True,
+        permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
@@ -80,9 +80,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_recipe(Favorite, request.user, pk)
 
     @action(
-            methods=['POST', 'DELETE'],
-            detail=True,
-            permission_classes=[IsAuthenticated],
+        methods=['POST', 'DELETE'],
+        detail=True,
+        permission_classes=[IsAuthenticated],
     )
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
@@ -91,9 +91,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_recipe(ShoppingCart, request.user, pk)
 
     @action(
-            methods=('get',),
-            detail=False,
-            permission_classes=[IsAuthenticated],
+        methods=('get',),
+        detail=False,
+        permission_classes=[IsAuthenticated],
     )
     def download_shopping_cart(self, request):
         ingredients = CountIngredientInRecipe.objects.filter(
