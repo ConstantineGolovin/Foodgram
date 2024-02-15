@@ -1,6 +1,6 @@
 # Foodgram
 
-![GITHUB-BADGE](https://github.com/ConstantineGolovin/foodgram-project-react/workflows/foodgram_workflow/badge.svg)
+![GITHUB-BADGE](https://github.com/ConstantineGolovin/foodgram-project-react/workflows/main/badge.svg)
 
 Социальная сеть в которой можно делиться своими рецептами, а также находить новые рецепты для себя у других пользователей. Также, на этом сервисе есть удобная возможность добавлять рецепты в избранное или список покупок, в котором можно скачать список необходимых ингредиентов.
 
