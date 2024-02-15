@@ -9,7 +9,7 @@ services:
       - ./.env
 
   backend:
-    image: golwin/foodgram_backend:latest
+    image: golwin/foodgram_backend_new:latest
     volumes:
       - static:/app/static_django/
       - media:/app/media/
@@ -24,7 +24,7 @@ services:
       - ../frontend/:/app/result_build/
 
   gateway:
-    image: golwin/foodgram_nginx:latest
+    image: golwin/foodgram_nginx_new:latest
     ports:
       - 8000:80
     volumes:
