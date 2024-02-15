@@ -26,7 +26,7 @@ services:
   gateway:
     build: ./nginx
     ports:
-      - 8000:80
+      - 80:80
     volumes:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
