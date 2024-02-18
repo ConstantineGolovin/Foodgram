@@ -10,8 +10,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
 from recipes.models import (Ingredient, Tag, Recipe,
-                            Follow, Favorite, ShoppingCart,
+                            Favorite, ShoppingCart,
                             CountIngredientInRecipe)
+from users.models import Follow
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
