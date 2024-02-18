@@ -70,15 +70,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @action(
-        methods=['POST', 'DELETE'],
+        methods=['POST'],
         detail=True,
         permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, pk):
-        if request.method == 'POST':
-            return self.add_recipe(Favorite, request.user, pk)
-        if request.method == 'DELETE':
-            return self.delete_recipe(Favorite, request.user, pk)
+        return self.add_recipe(Favorite, request.user, pk)
+
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
+        return self.delete_recipe(Favorite, request.user, pk)
 
     @action(
         methods=['POST', 'DELETE'],
