@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from ..constants import MAX_LENGTH
+from .constants import MAX_LENGTH
 
 
 class User(AbstractUser):
