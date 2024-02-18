@@ -5,7 +5,7 @@ from django.utils.deconstruct import deconstructible
 
 
 @deconstructible
-class OneOfTwoValidator:
+class OneLanguageValidator:
     first_regex = '[^а-яёА-ЯЁ]+'
     second_regex = '[^a-zA-Z]+'
     message = (

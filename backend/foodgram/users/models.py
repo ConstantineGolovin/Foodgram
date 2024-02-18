@@ -1,26 +1,28 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from ..constants import MAX_LENGTH
+
 
 class User(AbstractUser):
     """Модель кастомного юзера"""
 
     first_name = models.CharField(
         'Логин',
-        max_length=150
+        max_length=MAX_LENGTH
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=150
+        max_length=MAX_LENGTH
     )
     username = models.CharField(
         'Ник пользователя',
-        max_length=150,
+        max_length=MAX_LENGTH,
         unique=True
     )
     email = models.EmailField(
         'Email',
-        max_length=150,
+        max_length=MAX_LENGTH,
         unique=True
     )
     is_subscribed = models.BooleanField(
