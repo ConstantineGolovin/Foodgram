@@ -9,9 +9,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
-from recipes.models import (Ingredient, Tag, Recipe,
-                            Favorite, ShoppingCart,
-                            CountIngredientInRecipe)
+from recipes.models import (CountIngredientInRecipe,
+                            Favorite, Ingredient, Recipe,
+                            ShoppingCart, Tag)
 from users.models import Follow
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
@@ -21,7 +21,7 @@ from api.serializers import (IngredientSerializers,
                              FavoriteSerializer)
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import PagePagination
-from api.permissions import AuthorOrReadOnly
+from api.permissions import IsAuthUserOrReadOnly
 
 User = get_user_model()
 
@@ -41,7 +41,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = PagePagination
-    permission_classes = [AuthorOrReadOnly]
+    permission_classes = [IsAuthUserOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -65,7 +65,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-            {'errors': 'Рецепт уже был удалён!'},
+            {'errors': 'Невозможно удалить рецепт'},
             status=status.HTTP_400_BAD_REQUEST
         )
 

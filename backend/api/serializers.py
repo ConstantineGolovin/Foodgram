@@ -6,6 +6,7 @@ from recipes.models import (Ingredient, Tag,
                             Recipe, CountIngredientInRecipe,
                             Favorite, ShoppingCart)
 from users.models import Follow
+from api.constants import MAX_VALUE, MIN_VALUE, MIN_INGR
 
 
 User = get_user_model()
@@ -114,9 +115,13 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_amount(value):
-        if value < 1:
+        if value < MIN_VALUE:
             raise serializers.ValidationError(
-                'Количество ингредиента должно быть больше 0!'
+                f'Количество ингредиента должно быть больше {MIN_VALUE}!'
+            )
+        if value > MAX_VALUE:
+            raise serializers.ValidationError(
+                f'Количество ингредиента не может быть больше {MAX_VALUE}'
             )
         return value
 
@@ -202,12 +207,23 @@ class CreateNewRecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Ингредиент не может повторяться!'
                 )
-            if int(ingredient['amount']) <= 0:
+            if int(ingredient['amount']) <= MIN_INGR:
                 raise serializers.ValidationError(
-                    'Количество ингредиента должно быть больше 0'
+                    f'Количество ингредиента должно быть больше {MIN_INGR}'
                 )
             list_ingredients.append(ingredient['id'])
         return ingredients
+
+    def validate_cooking_time(self, cooking_time):
+        if cooking_time < MIN_VALUE:
+            raise serializers.ValidationError(
+                f'Время не может быть меньше {MIN_VALUE}'
+            )
+        if cooking_time > MAX_VALUE:
+            raise serializers.ValidationError(
+                f'Время не может быть больше {MAX_VALUE}'
+            )
+        return cooking_time
 
     def validate_tags(self, tags):
         if not tags:
