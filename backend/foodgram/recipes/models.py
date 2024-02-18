@@ -1,10 +1,11 @@
 from colorfield.fields import ColorField
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from users.models import User
 from recipes.constants import (MAX_LENGTH, MAX_LENGTH_COLOR_HEX,
-                               MAX_LENGTH_MEASUREMENT_UNIT, MAX_LENGTH_TEXT)
+                               MAX_LENGTH_MEASUREMENT_UNIT, MAX_LENGTH_TEXT,
+                               MIN_VALUE, MAX_VALUE)
 
 
 class Ingredient(models.Model):
@@ -82,7 +83,12 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveIntegerField(
         'Время',
-        validators=[MinValueValidator(1, 'Время не может быть меньше 1 мин')]
+        validators=[MinValueValidator(
+            MIN_VALUE, f'Время не может быть меньше {MIN_VALUE} мин'
+        ), MaxValueValidator(
+            MAX_VALUE, f'Время не может быть больше {MAX_VALUE} мин'
+        )
+        ]
     )
     image = models.ImageField(
         'Фото',
@@ -157,7 +163,12 @@ class CountIngredientInRecipe(models.Model):
     )
     amount = models.PositiveIntegerField(
         'Количество',
-        validators=[MinValueValidator(1, 'Количество не может быть меньше 1')]
+        validators=[MinValueValidator(
+            MIN_VALUE, f'Количество не может быть меньше {MIN_VALUE}'
+        ), MaxValueValidator(
+            MAX_VALUE, f'Количество не может быть больше{MAX_VALUE}'
+        )
+        ]
     )
 
     class Meta:
