@@ -93,6 +93,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_shopping_cart(self, request, pk):
         return self.delete_recipe(ShoppingCart, request.user, pk)
 
+    def shopping_cart_txt(ingredients):
+        shopping_cart = 'Список покупок:\n'
+        shopping_cart += ''.join([
+            f'{ingredient["ingredient__name"]} '
+            f'{ingredient["amount"]}'
+            f'{ingredient["ingredient__measurement_unit"]}\n'
+            for ingredient in ingredients
+        ])
+        return shopping_cart
+
     @action(
         methods=('get',),
         detail=False,
@@ -105,13 +115,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount')).order_by('ingredient__name')
-        shopping_cart = 'Список покупок:\n'
-        shopping_cart += ''.join([
-            f'{ingredient["ingredient__name"]} '
-            f'{ingredient["amount"]}'
-            f'{ingredient["ingredient__measurement_unit"]}\n'
-            for ingredient in ingredients
-        ])
+        shopping_cart = self.shopping_cart_txt(ingredients)
         response = HttpResponse(shopping_cart, content_type='text/plan')
         response['Content-Disposition'] = (
             'attachment; filename="shopping_cart.txt')
