@@ -116,34 +116,36 @@ class Recipe(models.Model):
         return self.name
 
 
-class Favorite(models.Model):
-    """Модель избранного"""
-
+class FavoriteAndShoppingCartABS(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='Рецепт'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='Пользователь'
     )
 
     class Meta:
-        verbose_name = 'Избранное'
-        verbose_name_plural = 'Избранные'
+        abstract = True
         constraints = [
             models.UniqueConstraint(
-                fields=['recipe', 'user'],
-                name='unique_favorite'
+                fields=['user', 'recipe'],
+                name='unique_user_recipe'
             )
         ]
 
     def __str__(self):
         return f'{self.user}{self.recipe}'
+
+
+class Favorite(FavoriteAndShoppingCartABS):
+    """Модель избранного"""
+
+    class Meta:
+        default_related_name = 'favorites'
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
 
 
 class CountIngredientInRecipe(models.Model):
@@ -185,31 +187,10 @@ class CountIngredientInRecipe(models.Model):
         return f'{self.recipe}{self.ingredient}'
 
 
-class ShoppingCart(models.Model):
+class ShoppingCart(FavoriteAndShoppingCartABS):
     """Модель с корзины с покупками"""
 
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shoppingcart',
-        verbose_name='Пользователь'
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shoppingcart',
-        verbose_name='Рецепт'
-    )
-
     class Meta:
+        default_related_name = 'shoppingcart'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_user_recipe'
-            )
-        ]
-
-    def __str__(self):
-        return f'{self.user}{self.recipe}'

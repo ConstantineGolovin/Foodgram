@@ -31,6 +31,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = ('id', 'name', 'image', 'cooking_time')
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=('recipe', 'user'),
+                message='Рецепт уже добавлен'
+            )
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):

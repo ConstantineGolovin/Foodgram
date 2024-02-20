@@ -50,13 +50,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def add_recipe(self, model, user, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        if model.objects.filter(user=user, recipe_id=recipe_id).exists():
-            return Response(
-                {'errors': 'Рецепт уже добавлен'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        model.objects.create(user=user, recipe=recipe)
         serializer = FavoriteSerializer(recipe)
+        model.objects.create(user=user, recipe=recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_recipe(self, model, user, recipe_id):
@@ -93,6 +88,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_shopping_cart(self, request, pk):
         return self.delete_recipe(ShoppingCart, request.user, pk)
 
+    @staticmethod
     def shopping_cart_txt(ingredients):
         shopping_cart = 'Список покупок:\n'
         shopping_cart += ''.join([
