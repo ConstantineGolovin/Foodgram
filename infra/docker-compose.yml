@@ -19,14 +19,14 @@ services:
       - ./.env
 
   frontend:
-    image: golwin/foodgram_frontend:latest
+    image: golwin/foodgram_frontend_new:latest
     volumes:
       - ../frontend/:/app/result_build/
 
   gateway:
     image: golwin/foodgram_nginx_new:latest
     ports:
-      - 8000:80
+      - 80:80
     volumes:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/

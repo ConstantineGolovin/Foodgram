@@ -49,12 +49,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def add_recipe(self, model, user, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
         if model.objects.filter(user=user, recipe_id=recipe_id).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        recipe = get_object_or_404(Recipe, id=recipe_id)
         model.objects.create(user=user, recipe=recipe)
         serializer = FavoriteSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -82,15 +82,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.delete_recipe(Favorite, request.user, pk)
 
     @action(
-        methods=['POST', 'DELETE'],
+        methods=['POST'],
         detail=True,
         permission_classes=[IsAuthenticated],
     )
     def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            return self.add_recipe(ShoppingCart, request.user, pk)
-        if request.method == 'DELETE':
-            return self.delete_recipe(ShoppingCart, request.user, pk)
+        return self.add_recipe(ShoppingCart, request.user, pk)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_recipe(ShoppingCart, request.user, pk)
 
     @action(
         methods=('get',),

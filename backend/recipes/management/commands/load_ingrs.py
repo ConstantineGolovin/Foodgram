@@ -17,6 +17,9 @@ class Command(BaseCommand):
             ).exists():
                 print(f'Ингредиент {ingredient["name"]} уже записан')
                 continue
-            Ingredient.objects.bulk_create(**ingredient)
+            Ingredient.objects.bulk_create([
+                Ingredient(name=ingredient['name']),
+                Ingredient(measurement_unit=ingredient['measurement_unit'])]
+            )
 
         print('Загрузка ингредиентов закончилась')
