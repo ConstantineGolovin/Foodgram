@@ -141,7 +141,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=['post',],
+        methods=['post'],
         permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, id):
