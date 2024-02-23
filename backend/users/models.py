@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .constants import MAX_LENGTH
+from .constants import MAX_LENGTH_EMAIL, MAX_LENGTH_NAME
 
 
 class User(AbstractUser):
@@ -9,20 +9,20 @@ class User(AbstractUser):
 
     first_name = models.CharField(
         'Логин',
-        max_length=MAX_LENGTH
+        max_length=MAX_LENGTH_NAME
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=MAX_LENGTH
+        max_length=MAX_LENGTH_NAME
     )
     username = models.CharField(
         'Ник пользователя',
-        max_length=MAX_LENGTH,
+        max_length=MAX_LENGTH_NAME,
         unique=True
     )
     email = models.EmailField(
         'Email',
-        max_length=MAX_LENGTH,
+        max_length=MAX_LENGTH_EMAIL,
         unique=True
     )
     is_subscribed = models.BooleanField(

@@ -9,19 +9,19 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
-from recipes.models import (CountIngredientInRecipe,
-                            Favorite, Ingredient, Recipe,
-                            ShoppingCart, Tag)
-from users.models import Follow
+from api.filters import IngredientFilter, RecipeFilter
+from api.pagination import PagePagination
+from api.permissions import IsAuthUserOrAuthorOrReadOnly
 from api.serializers import (IngredientSerializers,
                              TagSerializers,
                              RecipesSerializer,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
                              FavoriteSerializer)
-from api.filters import IngredientFilter, RecipeFilter
-from api.pagination import PagePagination
-from api.permissions import IsAuthUserOrReadOnly
+from recipes.models import (CountIngredientInRecipe,
+                            Favorite, Ingredient, Recipe,
+                            ShoppingCart, Tag)
+from users.models import Follow
 
 User = get_user_model()
 
@@ -41,13 +41,25 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = PagePagination
-    permission_classes = [IsAuthUserOrReadOnly]
+    permission_classes = [IsAuthUserOrAuthorOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    # def add_recipe(self, request, recipe_id):
+    """Не получается у меня реализовать это все через сериализатор,
+    уже перепробовал разные способы, все равно не получается.
+    Возвращает bad request. Пока жду ответ в пачке,
+    отправлю другие исправленные ошибки. По-любому будут еще замечания."""
+    #     recipe = get_object_or_404(Recipe, id=recipe_id)
+    #     user = self.request.user
+    #     serializer = FavoriteSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save(user=user, recipe=recipe)
+    #     return Response(data=serializer.data,
+    #                     status=status.HTTP_201_CREATED)
     def add_recipe(self, model, user, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
         serializer = FavoriteSerializer(recipe)
@@ -129,7 +141,7 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
+        methods=['post',],
         permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, id):
@@ -146,6 +158,10 @@ class UserViewSet(DjoserUserViewSet):
             sub.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @subscribe.mapping.delete
+    def delete_subscribe(self, request, id):
+        user = request.user
+        author = get_object_or_404(User, id=id)
         sub = get_object_or_404(
             Follow,
             user=user,
@@ -159,8 +175,7 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def is_subscriptions(self, request):
-        user = request.user
-        queryset = User.objects.filter(follow__user=user)
+        queryset = User.objects.filter(follow__user=request.user)
         pages = self.paginate_queryset(queryset)
         serializer = FollowSerializers(
             pages,

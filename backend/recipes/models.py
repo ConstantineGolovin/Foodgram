@@ -2,10 +2,11 @@ from colorfield.fields import ColorField
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from users.models import User
 from recipes.constants import (MAX_LENGTH, MAX_LENGTH_COLOR_HEX,
                                MAX_LENGTH_MEASUREMENT_UNIT, MAX_LENGTH_TEXT,
-                               MIN_VALUE, MAX_VALUE)
+                               MIN_VALUE_AMOUNT, MAX_VALUE_AMOUNT,
+                               MIN_VALUE_TIME, MAX_VALUE_TIME)
+from users.models import User
 
 
 class Ingredient(models.Model):
@@ -81,12 +82,12 @@ class Recipe(models.Model):
         'Описание',
         max_length=MAX_LENGTH_TEXT
     )
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         'Время',
         validators=[MinValueValidator(
-            MIN_VALUE, f'Время не может быть меньше {MIN_VALUE} мин'
+            MIN_VALUE_TIME, f'Время не может быть меньше {MIN_VALUE_TIME} мин'
         ), MaxValueValidator(
-            MAX_VALUE, f'Время не может быть больше {MAX_VALUE} мин'
+            MAX_VALUE_TIME, f'Время не может быть больше {MAX_VALUE_TIME} мин'
         )
         ]
     )
@@ -128,12 +129,6 @@ class FavoriteAndShoppingCartABS(models.Model):
 
     class Meta:
         abstract = True
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_user_recipe'
-            )
-        ]
 
     def __str__(self):
         return f'{self.user}{self.recipe}'
@@ -142,10 +137,16 @@ class FavoriteAndShoppingCartABS(models.Model):
 class Favorite(FavoriteAndShoppingCartABS):
     """Модель избранного"""
 
-    class Meta:
+    class Meta(FavoriteAndShoppingCartABS.Meta):
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite'
+            )
+        ]
 
 
 class CountIngredientInRecipe(models.Model):
@@ -163,12 +164,14 @@ class CountIngredientInRecipe(models.Model):
         related_name='countingredientinrecipe',
         verbose_name='Ингредиент'
     )
-    amount = models.PositiveIntegerField(
+    amount = models.PositiveSmallIntegerField(
         'Количество',
         validators=[MinValueValidator(
-            MIN_VALUE, f'Количество не может быть меньше {MIN_VALUE}'
+            MIN_VALUE_AMOUNT, 'Количество не может '
+                              f'быть меньше {MIN_VALUE_AMOUNT}'
         ), MaxValueValidator(
-            MAX_VALUE, f'Количество не может быть больше{MAX_VALUE}'
+            MAX_VALUE_AMOUNT, 'Количество не может '
+                              f'быть больше{MAX_VALUE_AMOUNT}'
         )
         ]
     )
@@ -190,7 +193,13 @@ class CountIngredientInRecipe(models.Model):
 class ShoppingCart(FavoriteAndShoppingCartABS):
     """Модель с корзины с покупками"""
 
-    class Meta:
+    class Meta(FavoriteAndShoppingCartABS.Meta):
         default_related_name = 'shoppingcart'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shoppingcart'
+            )
+        ]
