@@ -17,7 +17,9 @@ from api.serializers import (IngredientSerializers,
                              RecipesSerializer,
                              FollowSerializers,
                              CreateNewRecipeSerializer,
-                             FavoriteSerializer)
+                             FavoriteSerializer,
+                             ShopingCartSerializer,
+                             CreateFollowSerializer)
 from recipes.models import (CountIngredientInRecipe,
                             Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
@@ -48,24 +50,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    # def add_recipe(self, request, recipe_id):
-    """Не получается у меня реализовать это все через сериализатор,
-    уже перепробовал разные способы, все равно не получается.
-    Возвращает bad request. Пока жду ответ в пачке,
-    отправлю другие исправленные ошибки. По-любому будут еще замечания."""
-    #     recipe = get_object_or_404(Recipe, id=recipe_id)
-    #     user = self.request.user
-    #     serializer = FavoriteSerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save(user=user, recipe=recipe)
-    #     return Response(data=serializer.data,
-    #                     status=status.HTTP_201_CREATED)
-    def add_recipe(self, model, user, recipe_id):
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        serializer = FavoriteSerializer(recipe)
-        model.objects.create(user=user, recipe=recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     def delete_recipe(self, model, user, recipe_id):
         obj = model.objects.filter(user=user, recipe_id=recipe_id)
         if obj.exists():
@@ -82,7 +66,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, pk):
-        return self.add_recipe(Favorite, request.user, pk)
+        recipe = get_object_or_404(Recipe, id=pk)
+        context = {'request': request}
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = FavoriteSerializer(data=data, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
@@ -94,7 +88,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def shopping_cart(self, request, pk):
-        return self.add_recipe(ShoppingCart, request.user, pk)
+        recipe = get_object_or_404(Recipe, id=pk)
+        context = {'request': request}
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = ShopingCartSerializer(data=data, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
@@ -145,18 +149,19 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, id):
-        user = request.user
         author = get_object_or_404(User, id=id)
-        if request.method == 'POST':
-            serializer = FollowSerializers(
-                author,
-                data=request.data,
-                context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            sub = Follow.objects.create(user=user, author=author)
-            sub.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = {
+            'author': author.id,
+            'user': request.user.id
+        }
+        context = {'request': request}
+        serializer = CreateFollowSerializer(
+            data=data,
+            context=context
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
@@ -169,20 +174,6 @@ class UserViewSet(DjoserUserViewSet):
         )
         sub.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(
-        detail=True,
-        permission_classes=[IsAuthenticated],
-    )
-    def is_subscriptions(self, request):
-        queryset = User.objects.filter(follow__user=request.user)
-        pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializers(
-            pages,
-            many=True,
-            context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=['GET'],

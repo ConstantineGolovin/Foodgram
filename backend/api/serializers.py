@@ -2,13 +2,13 @@ from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (Ingredient, Tag,
-                            Recipe, CountIngredientInRecipe,
-                            Favorite, ShoppingCart)
-from users.models import Follow
 from api.constants import MIN_INGR
+from recipes.models import (CountIngredientInRecipe,
+                            Favorite, Ingredient, Recipe,
+                            ShoppingCart, Tag)
 from recipes.constants import (MAX_VALUE_AMOUNT, MIN_VALUE_AMOUNT,
                                MIN_VALUE_TIME, MAX_VALUE_TIME)
+from users.models import Follow
 
 
 User = get_user_model()
@@ -26,20 +26,62 @@ class TagSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class RecipeAndShoppingCartSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-        read_only_fields = ('id', 'name', 'image', 'cooking_time')
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Favorite.objects.all(),
-                fields=('recipe', 'user'),
-                message='Рецепт уже добавлен'
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = '__all__'
+
+    def validate(self, data):
+        if not self.context.get('request').method == 'POST':
+            return data
+        if Favorite.objects.filter(
+            user=data['user'],
+            recipe=data['recipe']
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен'
             )
-        ]
+        return data
+
+    def to_representation(self, instance):
+        return RecipeAndShoppingCartSerializer(
+            instance.recipe, context={
+                'request': self.context.get('request')
+            }
+        ).data
+
+
+class ShopingCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingCart
+        fields = '__all__'
+
+    def validate(self, data):
+        if not self.context.get('request').method == 'POST':
+            return data
+        if Favorite.objects.filter(
+            user=data['user'],
+            recipe=data['recipe']
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен'
+            )
+        return data
+
+    def to_representation(self, instance):
+        return RecipeAndShoppingCartSerializer(
+            instance.recipe, context={
+                'request': self.context.get('request')
+            }
+        ).data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -104,6 +146,34 @@ class FollowSerializers(UserSerializer):
         recipes = obj.recipes.all()
         recipes = recipes[:recipe_limit] if recipe_limit else recipes
         return ShortRecipeSerializer(recipes, many=True).data
+
+
+class CreateFollowSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Follow
+        fields = ('user', 'author')
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('author', 'user'),
+                message='Невозможно подписаться, так как вы уже подписаны'
+            )
+        ]
+
+    def validate(self, data):
+        if data['user'] == data['author']:
+            raise serializers.ValidationError(
+                'Нельзя подписаться на себя'
+            )
+        return data
+
+    def to_representation(self, instance):
+        return FollowSerializers(
+            instance.author, context={
+                'request': self.context.get('request')
+            }
+        ).data
 
 
 class CountIngredientInRecipeSerializer(serializers.ModelSerializer):
