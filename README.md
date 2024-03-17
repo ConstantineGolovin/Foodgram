@@ -15,7 +15,7 @@
 ## Запуск проекта через Docker
 Клонировать репозиторий:
 ~~~
-git clone git@github.com:ConstantineGolovin/foodgram-project-react.git
+git clone git@github.com:ConstantineGolovin/Foodgram.git
 ~~~
 Запуск проекта:
 ~~~
